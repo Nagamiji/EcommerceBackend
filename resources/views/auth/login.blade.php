@@ -53,16 +53,19 @@
             body: JSON.stringify({ email, password })
         })
         .then(response => {
-            if (!response.ok) throw new Error('Invalid credentials');
+            if (!response.ok) throw new Error('Invalid credentials or server error');
             return response.json();
         })
         .then(data => {
-            localStorage.setItem('token', data.token);
-            window.location.href = '/admin/dashboard';
+            if (!data.token) throw new Error('No token received');
+            const token = data.token;
+            localStorage.setItem('token', token);
+            console.log('Token stored:', token);
+            window.location.href = `/admin/dashboard?token=${encodeURIComponent(token)}`;
         })
         .catch(error => {
-            console.error('Error:', error);
-            alert('Login failed. Please check your credentials.');
+            console.error('Login error:', error);
+            alert('Login failed. Please check your credentials or try again.');
         });
     });
 </script>

@@ -15,7 +15,7 @@ Route::get('/logout', function () {
     return view('auth.logout');
 })->name('logout');
 
-Route::middleware(['jwt.auth', 'admin'])->group(function () {
+Route::group(['middleware' => [\App\Http\Middleware\JwtAuthForWeb::class, 'admin']], function () {
     Route::get('/admin/dashboard', [App\Http\Controllers\AdminController::class, 'dashboard'])->name('admin.dashboard');
     Route::get('/admin/products', [App\Http\Controllers\ProductController::class, 'indexAdmin'])->name('admin.products');
     Route::get('/admin/categories', [App\Http\Controllers\CategoryController::class, 'indexAdmin'])->name('admin.categories');
