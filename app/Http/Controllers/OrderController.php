@@ -9,50 +9,54 @@ class OrderController extends Controller
 {
     public function index()
     {
-        $orders = Order::all();
-        return response()->json($orders);
+        \Log::info('OrderController@index called');
+        $orders = Order::with('user')->get();
+        return view('admin.orders.index', compact('orders'));
     }
 
-    public function indexAdmin()
+    public function create()
     {
-        return view('admin.orders');
+        return view('admin.orders.create');
     }
 
     public function store(Request $request)
     {
-        $order = Order::create($request->all());
-        return response()->json($order, 201);
+        $request->validate([
+            'user_id' => 'required|exists:users,id',
+            'total_price' => 'required|numeric',
+            'status' => 'required|in:pending,completed,shipped,cancelled',
+        ]);
+
+        Order::create($request->all());
+        return redirect()->route('orders.index')->with('success', 'Order created successfully.');
     }
 
-    public function show($id)
+    public function show(Order $order)
     {
-        $order = Order::find($id);
-        if ($order) {
-            return response()->json($order);
-        } else {
-            return response()->json(['message' => 'Order not found'], 404);
-        }
+        $order->load('user', 'orderItems');
+        return view('admin.orders.show', compact('order'));
     }
 
-    public function update(Request $request, $id)
+    public function edit(Order $order)
     {
-        $order = Order::find($id);
-        if ($order) {
-            $order->update($request->all());
-            return response()->json($order);
-        } else {
-            return response()->json(['message' => 'Order not found'], 404);
-        }
+        return view('admin.orders.edit', compact('order'));
     }
 
-    public function destroy($id)
+    public function update(Request $request, Order $order)
     {
-        $order = Order::find($id);
-        if ($order) {
-            $order->delete();
-            return response()->json(['message' => 'Order deleted successfully']);
-        } else {
-            return response()->json(['message' => 'Order not found'], 404);
-        }
+        $request->validate([
+            'user_id' => 'required|exists:users,id',
+            'total_price' => 'required|numeric',
+            'status' => 'required|in:pending,completed,shipped,cancelled',
+        ]);
+
+        $order->update($request->all());
+        return redirect()->route('orders.index')->with('success', 'Order updated successfully.');
+    }
+
+    public function destroy(Order $order)
+    {
+        $order->delete();
+        return redirect()->route('orders.index')->with('success', 'Order deleted successfully.');
     }
 }

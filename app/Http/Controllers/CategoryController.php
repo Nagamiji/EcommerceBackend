@@ -9,50 +9,51 @@ class CategoryController extends Controller
 {
     public function index()
     {
+        \Log::info('CategoryController@index called');
         $categories = Category::all();
-        return response()->json($categories);
+        return view('admin.categories.index', compact('categories'));
     }
 
-    public function indexAdmin()
+    public function create()
     {
-        return view('admin.categories');
+        return view('admin.categories.create');
     }
 
     public function store(Request $request)
     {
-        $category = Category::create($request->all());
-        return response()->json($category, 201);
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'description' => 'nullable|string',
+        ]);
+
+        Category::create($request->all());
+        return redirect()->route('categories.index')->with('success', 'Category created successfully.');
     }
 
-    public function show($id)
+    public function show(Category $category)
     {
-        $category = Category::find($id);
-        if ($category) {
-            return response()->json($category);
-        } else {
-            return response()->json(['message' => 'Category not found'], 404);
-        }
+        return view('admin.categories.show', compact('category'));
     }
 
-    public function update(Request $request, $id)
+    public function edit(Category $category)
     {
-        $category = Category::find($id);
-        if ($category) {
-            $category->update($request->all());
-            return response()->json($category);
-        } else {
-            return response()->json(['message' => 'Category not found'], 404);
-        }
+        return view('admin.categories.edit', compact('category'));
     }
 
-    public function destroy($id)
+    public function update(Request $request, Category $category)
     {
-        $category = Category::find($id);
-        if ($category) {
-            $category->delete();
-            return response()->json(['message' => 'Category deleted successfully']);
-        } else {
-            return response()->json(['message' => 'Category not found'], 404);
-        }
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'description' => 'nullable|string',
+        ]);
+
+        $category->update($request->all());
+        return redirect()->route('categories.index')->with('success', 'Category updated successfully.');
+    }
+
+    public function destroy(Category $category)
+    {
+        $category->delete();
+        return redirect()->route('categories.index')->with('success', 'Category deleted successfully.');
     }
 }
