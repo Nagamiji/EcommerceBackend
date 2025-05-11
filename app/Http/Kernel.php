@@ -7,7 +7,7 @@ use Illuminate\Foundation\Http\Kernel as HttpKernel;
 class Kernel extends HttpKernel
 {
     protected $middleware = [
-        // ...
+        \App\Http\Middleware\LogRequestStart::class,
     ];
 
     protected $middlewareGroups = [
@@ -18,6 +18,7 @@ class Kernel extends HttpKernel
             \Illuminate\View\Middleware\ShareErrorsFromSession::class,
             \App\Http\Middleware\VerifyCsrfToken::class,
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
+            \App\Http\Middleware\StartSession::class, // Add custom session middleware
         ],
         'api' => [
             'throttle:api',
@@ -27,7 +28,10 @@ class Kernel extends HttpKernel
 
     protected $routeMiddleware = [
         'auth' => \App\Http\Middleware\Authenticate::class,
+        'guest' => \App\Http\Middleware\RedirectIfAuthenticated::class,
         'admin' => \App\Http\Middleware\CheckIfAdmin::class,
-        // Remove or adjust JwtAuthForWeb if not needed for web
+        'seller' => \App\Http\Middleware\SellerMiddleware::class,
+        'auth' => \App\Http\Middleware\Authenticate::class,
+        'seller' => \App\Http\Middleware\Seller::class,
     ];
 }

@@ -4,6 +4,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\OrderController;
+use App\Http\Controllers\SellerController;
 use Illuminate\Support\Facades\Route;
 
 \Log::info('Loading routes/api.php');
@@ -40,4 +41,14 @@ Route::middleware('jwt.auth')->group(function () {
     Route::get('/orders/{id}', [OrderController::class, 'show']);
     Route::put('/orders/{id}', [OrderController::class, 'update']);
     Route::delete('/orders/{id}', [OrderController::class, 'destroy']);
+
+    // Seller Routes (API-specific, returns JSON)
+    Route::prefix('seller')->group(function () {
+        Route::get('/dashboard', [SellerController::class, 'dashboard'])->name('api.seller.dashboard');
+        Route::get('/products/create', [SellerController::class, 'createProduct']);
+        Route::post('/products', [SellerController::class, 'storeProduct']);
+        Route::get('/products/{product}/edit', [SellerController::class, 'editProduct']);
+        Route::put('/products/{product}', [SellerController::class, 'updateProduct']);
+        Route::delete('/products/{product}', [SellerController::class, 'destroyProduct']);
+    });
 });

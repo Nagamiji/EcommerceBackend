@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+<html lang="<?php echo e(str_replace('_', '-', app()->getLocale())); ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard - E-Commerce</title>
-    <link rel="icon" type="image/x-icon" href="{{ asset('favicon.ico') }}">
+    <link rel="icon" type="image/x-icon" href="<?php echo e(asset('favicon.ico')); ?>">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/css/adminlte.min.css">
@@ -20,52 +20,52 @@
             </ul>
             
             <ul class="navbar-nav ml-auto">
-                @if (Auth::check())
+                <?php if(Auth::check()): ?>
                     <li class="nav-item">
-                        <span class="nav-link">Welcome, {{ Auth::user()->name }}</span>
+                        <span class="nav-link">Welcome, <?php echo e(Auth::user()->name); ?></span>
                     </li>
                     <li class="nav-item">
-                        <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display: inline;">
-                            @csrf
+                        <form id="logout-form" action="<?php echo e(route('logout')); ?>" method="POST" style="display: inline;">
+                            <?php echo csrf_field(); ?>
                             <button type="submit" class="nav-link btn btn-link">
                                 <i class="fas fa-sign-out-alt"></i> Logout
                             </button>
                         </form>
                     </li>
-                @else
+                <?php else: ?>
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ route('login') }}">Login</a>
+                        <a class="nav-link" href="<?php echo e(route('login')); ?>">Login</a>
                     </li>
-                @endif
+                <?php endif; ?>
             </ul>
         </nav>
         <aside class="main-sidebar sidebar-dark-primary elevation-4">
-            <a href="{{ route('admin.dashboard') }}" class="brand-link">
+            <a href="<?php echo e(route('admin.dashboard')); ?>" class="brand-link">
                 <span class="brand-text font-weight-light">E-Commerce Admin</span>
             </a>
             <div class="sidebar">
                 <nav class="mt-2">
                     <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
                         <li class="nav-item">
-                            <a href="{{ route('admin.dashboard') }}" class="nav-link {{ Route::is('admin.dashboard') ? 'active' : '' }}">
+                            <a href="<?php echo e(route('admin.dashboard')); ?>" class="nav-link <?php echo e(Route::is('admin.dashboard') ? 'active' : ''); ?>">
                                 <i class="nav-icon fas fa-tachometer-alt"></i>
                                 <p>Dashboard</p>
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a href="{{ route('products.index') }}" class="nav-link {{ Route::is('products.*') ? 'active' : '' }}">
+                            <a href="<?php echo e(route('products.index')); ?>" class="nav-link <?php echo e(Route::is('products.*') ? 'active' : ''); ?>">
                                 <i class="nav-icon fas fa-box"></i>
                                 <p>Products</p>
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a href="{{ route('categories.index') }}" class="nav-link {{ Route::is('categories.*') ? 'active' : '' }}">
+                            <a href="<?php echo e(route('categories.index')); ?>" class="nav-link <?php echo e(Route::is('categories.*') ? 'active' : ''); ?>">
                                 <i class="nav-icon fas fa-list"></i>
                                 <p>Categories</p>
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a href="{{ route('orders.index') }}" class="nav-link {{ Route::is('orders.*') ? 'active' : '' }}">
+                            <a href="<?php echo e(route('orders.index')); ?>" class="nav-link <?php echo e(Route::is('orders.*') ? 'active' : ''); ?>">
                                 <i class="nav-icon fas fa-shopping-cart"></i>
                                 <p>Orders</p>
                             </a>
@@ -86,7 +86,7 @@
             </div>
             <section class="content">
                 <div class="container-fluid">
-                    @yield('content')
+                    <?php echo $__env->yieldContent('content'); ?>
                 </div>
             </section>
         </div>
@@ -99,4 +99,4 @@
     <script src="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/js/adminlte.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </body>
-</html>
+</html><?php /**PATH D:\Year 4\S2\E-COMMERCE\backend1\resources\views/layouts/admin.blade.php ENDPATH**/ ?>

@@ -4,9 +4,8 @@ namespace App\Models;
 
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Tymon\JWTAuth\Contracts\JWTSubject;
 
-class User extends Authenticatable implements JWTSubject
+class User extends Authenticatable
 {
     use Notifiable;
 
@@ -23,13 +22,23 @@ class User extends Authenticatable implements JWTSubject
         'is_admin' => 'boolean',
     ];
 
-    public function getJWTIdentifier()
+    public function products()
     {
-        return $this->getKey();
+        return $this->hasMany(Product::class);
     }
 
-    public function getJWTCustomClaims()
+    public function isCustomer()
     {
-        return [];
+        return $this->role === 'customer';
+    }
+
+    public function isSeller()
+    {
+        return $this->role === 'seller';
+    }
+
+    public function isAdmin()
+    {
+        return $this->is_admin==1;
     }
 }

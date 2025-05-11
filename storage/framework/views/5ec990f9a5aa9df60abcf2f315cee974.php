@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+<html lang="<?php echo e(str_replace('_', '-', app()->getLocale())); ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -19,21 +19,21 @@
             </ul>
 
             <ul class="navbar-nav ml-auto">
-                @if (Auth::check())
+                <?php if(Auth::check()): ?>
                     <li class="nav-item">
-                        <span class="nav-link">Welcome, {{ Auth::user()->name }}</span>
+                        <span class="nav-link">Welcome, <?php echo e(Auth::user()->name); ?></span>
                     </li>
                     <li class="nav-item">
-                        <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display: inline;">
-                            @csrf
+                        <form id="logout-form" action="<?php echo e(route('logout')); ?>" method="POST" style="display: inline;">
+                            <?php echo csrf_field(); ?>
                             <button type="submit" class="nav-link btn btn-link">Logout</button>
                         </form>
                     </li>
-                @else
+                <?php else: ?>
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ route('login') }}">Login</a>
+                        <a class="nav-link" href="<?php echo e(route('login')); ?>">Login</a>
                     </li>
-                @endif
+                <?php endif; ?>
             </ul>
         </nav>
 
@@ -45,54 +45,54 @@
             <div class="sidebar">
                 <nav class="mt-2">
                     <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu">
-                        @if (Auth::check())
-                            @if (Auth::user()->is_admin)
+                        <?php if(Auth::check()): ?>
+                            <?php if(Auth::user()->is_admin): ?>
                                 <li class="nav-item">
-                                    <a href="{{ route('admin.dashboard') }}" class="nav-link">
+                                    <a href="<?php echo e(route('admin.dashboard')); ?>" class="nav-link">
                                         <i class="nav-icon fas fa-tachometer-alt"></i>
                                         <p>Admin Dashboard</p>
                                     </a>
                                 </li>
                                 <li class="nav-item">
-                                    <a href="{{ url('admin/products') }}" class="nav-link">
+                                    <a href="<?php echo e(url('admin/products')); ?>" class="nav-link">
                                         <i class="nav-icon fas fa-box"></i>
                                         <p>Products</p>
                                     </a>
                                 </li>
                                 <li class="nav-item">
-                                    <a href="{{ url('admin/categories') }}" class="nav-link">
+                                    <a href="<?php echo e(url('admin/categories')); ?>" class="nav-link">
                                         <i class="nav-icon fas fa-tags"></i>
                                         <p>Categories</p>
                                     </a>
                                 </li>
                                 <li class="nav-item">
-                                    <a href="{{ url('admin/orders') }}" class="nav-link">
+                                    <a href="<?php echo e(url('admin/orders')); ?>" class="nav-link">
                                         <i class="nav-icon fas fa-shopping-cart"></i>
                                         <p>Orders</p>
                                     </a>
                                 </li>
-                            @elseif (Auth::user()->role === 'seller')
+                            <?php elseif(Auth::user()->role === 'seller'): ?>
                                 <li class="nav-item">
-                                    <a href="{{ route('seller.dashboard') }}" class="nav-link">
+                                    <a href="<?php echo e(route('seller.dashboard')); ?>" class="nav-link">
                                         <i class="nav-icon fas fa-tachometer-alt"></i>
                                         <p>Seller Dashboard</p>
                                     </a>
                                 </li>
                                 <li class="nav-item">
-                                    <a href="{{ route('seller.products.create') }}" class="nav-link">
+                                    <a href="<?php echo e(route('seller.products.create')); ?>" class="nav-link">
                                         <i class="nav-icon fas fa-plus"></i>
                                         <p>Add Product</p>
                                     </a>
                                 </li>
-                            @else
+                            <?php else: ?>
                                 <li class="nav-item">
-                                    <a href="{{ route('home') }}" class="nav-link">
+                                    <a href="<?php echo e(route('home')); ?>" class="nav-link">
                                         <i class="nav-icon fas fa-home"></i>
                                         <p>Home</p>
                                     </a>
                                 </li>
-                            @endif
-                        @endif
+                            <?php endif; ?>
+                        <?php endif; ?>
                     </ul>
                 </nav>
             </div>
@@ -102,7 +102,7 @@
         <div class="content-wrapper">
             <div class="content">
                 <div class="container-fluid mt-3">
-                    @yield('content')
+                    <?php echo $__env->yieldContent('content'); ?>
                 </div>
             </div>
         </div>
@@ -112,4 +112,4 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/js/adminlte.min.js"></script>
 </body>
-</html>
+</html><?php /**PATH D:\Year 4\S2\E-COMMERCE\backend1\resources\views/layouts/app.blade.php ENDPATH**/ ?>

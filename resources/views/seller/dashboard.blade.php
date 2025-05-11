@@ -6,11 +6,11 @@
     <div class="container-fluid">
         <div class="row mb-2">
             <div class="col-sm-6">
-                <h1 class="m-0">Dashboard</h1>
+                <h1 class="m-0">Seller Dashboard</h1>
             </div>
             <div class="col-sm-6">
                 <ol class="breadcrumb float-sm-right">
-                    <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}">Home</a></li>
+                    <li class="breadcrumb-item"><a href="{{ route('seller.dashboard') }}">Home</a></li>
                     <li class="breadcrumb-item active">Dashboard</li>
                 </ol>
             </div>
@@ -23,7 +23,7 @@
     <div class="container-fluid">
         <!-- Small Boxes (Stat boxes) -->
         <div class="row">
-            <div class="col-lg-3 col-6">
+            <div class="col-lg-4 col-6">
                 <div class="small-box bg-info">
                     <div class="inner">
                         <h3>{{ $totalProducts }}</h3>
@@ -32,22 +32,10 @@
                     <div class="icon">
                         <i class="fas fa-box"></i>
                     </div>
-                    <a href="{{ route('products.index') }}" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
+                    <a href="#" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
                 </div>
             </div>
-            <div class="col-lg-3 col-6">
-                <div class="small-box bg-success">
-                    <div class="inner">
-                        <h3>{{ $totalCategories }}</h3>
-                        <p>Total Categories</p>
-                    </div>
-                    <div class="icon">
-                        <i class="fas fa-list"></i>
-                    </div>
-                    <a href="{{ route('categories.index') }}" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
-                </div>
-            </div>
-            <div class="col-lg-3 col-6">
+            <div class="col-lg-4 col-6">
                 <div class="small-box bg-warning">
                     <div class="inner">
                         <h3>{{ $totalOrders }}</h3>
@@ -56,11 +44,11 @@
                     <div class="icon">
                         <i class="fas fa-shopping-cart"></i>
                     </div>
-                    <a href="{{ route('orders.index') }}" class="small-box-footer">Pending: {{ $pendingPayments }} <i class="fas fa-arrow-circle-right"></i></a>
+                    <a href="#" class="small-box-footer">Pending: {{ $pendingPayments }} <i class="fas fa-arrow-circle-right"></i></a>
                 </div>
             </div>
-            <div class="col-lg-3 col-6">
-                <div class="small-box bg-danger">
+            <div class="col-lg-4 col-6">
+                <div class="small-box bg-success">
                     <div class="inner">
                         <h3>${{ number_format($totalRevenue, 2) }}</h3>
                         <p>Total Revenue</p>
@@ -68,22 +56,13 @@
                     <div class="icon">
                         <i class="fas fa-dollar-sign"></i>
                     </div>
-                    <a href="{{ route('orders.index') }}" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
+                    <a href="#" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
                 </div>
             </div>
         </div>
 
         <!-- Info Boxes -->
         <div class="row">
-            <div class="col-md-6">
-                <div class="info-box">
-                    <span class="info-box-icon bg-primary"><i class="fas fa-users"></i></span>
-                    <div class="info-box-content">
-                        <span class="info-box-text">Total Users</span>
-                        <span class="info-box-number">{{ $totalUsers }}</span>
-                    </div>
-                </div>
-            </div>
             <div class="col-md-6">
                 <div class="info-box">
                     <span class="info-box-icon bg-warning"><i class="fas fa-exclamation-triangle"></i></span>
@@ -100,10 +79,10 @@
             <div class="col-md-6">
                 <div class="card">
                     <div class="card-header">
-                        <h3 class="card-title">Top Selling Products</h3>
+                        <h3 class="card-title">Top 10 Selling Products</h3>
                     </div>
                     <div class="card-body">
-                        <canvas id="topSellingChart" style="height: 250px;"></canvas>
+                        <canvas id="topSellingChart" style="height: 300px;"></canvas>
                     </div>
                 </div>
             </div>
@@ -113,7 +92,7 @@
                         <h3 class="card-title">Orders Over Time</h3>
                     </div>
                     <div class="card-body">
-                        <canvas id="ordersChart" style="height: 250px;"></canvas>
+                        <canvas id="ordersChart" style="height: 300px;"></canvas>
                     </div>
                 </div>
             </div>
@@ -124,29 +103,45 @@
             <div class="col-md-6">
                 <div class="card card-primary">
                     <div class="card-header">
-                        <h3 class="card-title">Users Overview</h3>
+                        <h3 class="card-title">My Products</h3>
+                        <a href="{{ route('seller.products.create') }}" class="btn btn-primary float-right">Add Product</a>
                     </div>
                     <div class="card-body">
-                        <ul class="list-group list-group-unbordered">
-                            <li class="list-group-item">
-                                <b>Total Users:</b> <span class="float-right">{{ $totalUsers }}</span>
-                            </li>
-                            <li class="list-group-item">
-                                <b>Customers:</b> <span class="float-right">{{ $customers }}</span>
-                            </li>
-                            <li class="list-group-item">
-                                <b>Sellers:</b> <span class="float-right">{{ $sellers }}</span>
-                            </li>
-                            <li class="list-group-item">
-                                <b>Admins:</b> <span class="float-right">{{ $admins }}</span>
-                            </li>
-                            <li class="list-group-item">
-                                <b>New Today:</b> <span class="float-right">{{ $newUsersToday }}</span>
-                            </li>
-                            <li class="list-group-item">
-                                <b>Active Carts:</b> <span class="float-right">{{ $activeCarts }}</span>
-                            </li>
-                        </ul>
+                        @if($products->isEmpty())
+                            <p class="text-center">No products available.</p>
+                        @else
+                            <table class="table table-bordered">
+                                <thead>
+                                    <tr>
+                                        <th>Image</th>
+                                        <th>Name</th>
+                                        <th>Price</th>
+                                        <th>Stock</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach($products as $product)
+                                        <tr>
+                                            <td>
+                                                <img src="{{ $product->primaryImage ? asset('storage/' . $product->primaryImage->image_path) : asset('images/default.png') }}" alt="{{ $product->name }}" style="width: 50px; height: 50px; object-fit: cover;" onerror="this.src='{{ asset('images/default.png') }}';">
+                                            </td>
+                                            <td>{{ $product->name }}</td>
+                                            <td>${{ number_format($product->price, 2) }}</td>
+                                            <td>{{ $product->stock_quantity }}</td>
+                                            <td>
+                                                <a href="{{ route('seller.products.edit', $product->id) }}" class="btn btn-warning btn-sm">Edit</a>
+                                                <form action="{{ route('seller.products.destroy', $product->id) }}" method="POST" style="display:inline;">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure?')">Delete</button>
+                                                </form>
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        @endif
                     </div>
                 </div>
             </div>
@@ -163,7 +158,7 @@
                                 <thead>
                                     <tr>
                                         <th>ID</th>
-                                        <th>User</th>
+                                        <th>Customer</th>
                                         <th>Total</th>
                                         <th>Status</th>
                                     </tr>
@@ -214,69 +209,6 @@
                     </div>
                 </div>
             </div>
-            <div class="col-md-6">
-                <div class="card card-info">
-                    <div class="card-header">
-                        <h3 class="card-title">Top Categories</h3>
-                    </div>
-                    <div class="card-body">
-                        @if($categoriesWithProducts->isEmpty())
-                            <p class="text-center">No categories available.</p>
-                        @else
-                            <ul class="list-group">
-                                @foreach($categoriesWithProducts as $category)
-                                    <li class="list-group-item">
-                                        {{ $category->name }} (Products: {{ $category->products_count }})
-                                    </li>
-                                @endforeach
-                            </ul>
-                        @endif
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Seller Registration Form -->
-        <div class="row">
-            <div class="col-md-6">
-                <div class="card">
-                    <div class="card-header">
-                        <h3 class="card-title">Register New Seller</h3>
-                    </div>
-                    <div class="card-body">
-                        @if(session('success'))
-                            <div class="alert alert-success">
-                                {{ session('success') }}
-                            </div>
-                        @endif
-                        @if($errors->any())
-                            <div class="alert alert-danger">
-                                <ul>
-                                    @foreach($errors->all() as $error)
-                                        <li>{{ $error }}</li>
-                                    @endforeach
-                                </ul>
-                            </div>
-                        @endif
-                        <form method="POST" action="{{ route('admin.register-seller') }}">
-                            @csrf
-                            <div class="form-group">
-                                <label for="name">Name</label>
-                                <input type="text" name="name" class="form-control" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="email">Email</label>
-                                <input type="email" name="email" class="form-control" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="password">Password</label>
-                                <input type="password" name="password" class="form-control" required>
-                            </div>
-                            <button type="submit" class="btn btn-primary">Register</button>
-                        </form>
-                    </div>
-                </div>
-            </div>
         </div>
     </div>
 </section>
@@ -289,25 +221,71 @@
     const topSellingChart = new Chart(topSellingCtx, {
         type: 'bar',
         data: {
-            labels: @json(array_map(function ($item) {
-                return $item->product ? $item->product->name : "Product #{$item->product_id}";
-            }, $topSellingProducts->take(5)->all())),
+            labels: @json($topSellingProductNames),
             datasets: [{
-                label: 'Units Sold',
-                data: @json(array_map(function ($item) {
-                    return $item->quantity;
-                }, $topSellingProducts->take(5)->all())),
-                backgroundColor: 'rgba(54, 162, 235, 0.2)',
-                borderColor: 'rgba(54, 162, 235, 1)',
+                label: 'Top Products',
+                data: Array(@json(count($topSellingProductNames))).fill(1), // Dummy data to create bars
+                backgroundColor: [
+                    'rgba(255, 99, 132, 0.6)',
+                    'rgba(54, 162, 235, 0.6)',
+                    'rgba(255, 206, 86, 0.6)',
+                    'rgba(75, 192, 192, 0.6)',
+                    'rgba(153, 102, 255, 0.6)',
+                    'rgba(255, 159, 64, 0.6)',
+                    'rgba(199, 199, 199, 0.6)',
+                    'rgba(83, 102, 255, 0.6)',
+                    'rgba(255, 99, 71, 0.6)',
+                    'rgba(50, 205, 50, 0.6)'
+                ],
+                borderColor: [
+                    'rgba(255, 99, 132, 1)',
+                    'rgba(54, 162, 235, 1)',
+                    'rgba(255, 206, 86, 1)',
+                    'rgba(75, 192, 192, 1)',
+                    'rgba(153, 102, 255, 1)',
+                    'rgba(255, 159, 64, 1)',
+                    'rgba(199, 199, 199, 1)',
+                    'rgba(83, 102, 255, 1)',
+                    'rgba(255, 99, 71, 1)',
+                    'rgba(50, 205, 50, 1)'
+                ],
                 borderWidth: 1
             }]
         },
         options: {
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'top',
+                    labels: {
+                        font: {
+                            size: 14
+                        }
+                    }
+                },
+                title: {
+                    display: true,
+                    text: 'Top 10 Selling Products',
+                    font: {
+                        size: 16
+                    }
+                }
+            },
             scales: {
                 y: {
-                    beginAtZero: true
+                    display: false // Hide the y-axis since we're not showing quantities
+                },
+                x: {
+                    ticks: {
+                        font: {
+                            size: 12
+                        }
+                    }
                 }
-            }
+            },
+            indexAxis: 'y', // Horizontal bar chart
+            responsive: true,
+            maintainAspectRatio: false
         }
     });
 

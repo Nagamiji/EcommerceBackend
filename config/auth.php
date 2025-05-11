@@ -10,10 +10,11 @@ return [
             'driver' => 'session',
             'provider' => 'users',
         ],
-        'api' => [
-            'driver' => 'jwt',
-            'provider' => 'users',
-        ],
+        // Temporarily comment out the api guard
+        // 'api' => [
+        //     'driver' => 'jwt',
+        //     'provider' => 'users',
+        // ],
     ],
     'providers' => [
         'users' => [
