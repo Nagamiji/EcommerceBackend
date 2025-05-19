@@ -6,19 +6,10 @@ use Illuminate\Database\Eloquent\Model;
 
 class Payment extends Model
 {
-    protected $table = 'payments';
+    protected $fillable = ['order_id', 'transaction_id', 'payment_status', 'amount', 'payment_method'];
 
-    protected $fillable = [
-        'order_id',
-        'payment_status',
-        'amount',
-        'payment_method',
-    ];
-
-    protected $casts = [
-        'amount' => 'decimal:2',
-        'created_at' => 'datetime',
-    ];
+    // Disable timestamps since updated_at is missing
+    public $timestamps = false;
 
     public function order()
     {

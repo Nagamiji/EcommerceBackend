@@ -4,10 +4,11 @@ namespace App\Models;
 
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Laravel\Sanctum\HasApiTokens; // Add this
 
 class User extends Authenticatable
 {
-    use Notifiable;
+    use HasApiTokens, Notifiable; // Add HasApiTokens here
 
     protected $fillable = [
         'name', 'email', 'password', 'is_admin', 'role',
@@ -34,11 +35,11 @@ class User extends Authenticatable
 
     public function isSeller()
     {
-        return $this->role === 'seller';
+        return $this->role === 'seller' || $this->is_admin;
     }
 
     public function isAdmin()
     {
-        return $this->is_admin==1;
+        return $this->is_admin == 1;
     }
 }

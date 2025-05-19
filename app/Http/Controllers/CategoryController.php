@@ -56,4 +56,22 @@ class CategoryController extends Controller
         $category->delete();
         return redirect()->route('categories.index')->with('success', 'Category deleted successfully.');
     }
+
+    // Add the publicIndex method
+    public function publicIndex(Request $request)
+    {
+        $perPage = $request->input('per_page', 10); // Default to 10 items per page
+        $categories = Category::with(['products'])
+            ->paginate($perPage);
+
+        \Log::info('Public Categories Result:', ['categories' => $categories->toArray()]);
+
+        return response()->json([
+            'status_code' => 200,
+            'data' => $categories->items(),
+            'total' => $categories->total(),
+            'current_page' => $categories->currentPage(),
+            'last_page' => $categories->lastPage(),
+        ], 200, [], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+    }
 }

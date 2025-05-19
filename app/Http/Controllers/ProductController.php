@@ -14,7 +14,7 @@ class ProductController extends Controller
 {
     public function __construct()
     {
-        $this->middleware('auth');
+        $this->middleware('auth')->except(['searchProducts', 'publicIndex','showPublic']);
         $this->middleware('admin')->only(['index', 'show', 'destroy']);
         $this->middleware(function ($request, $next) {
             if (Auth::check() && (Auth::user()->is_admin || Auth::user()->role === 'seller')) {
@@ -24,12 +24,33 @@ class ProductController extends Controller
         })->only(['create', 'store', 'edit', 'update']);
     }
 
+    // List all public products
+    public function publicIndex(Request $request)
+    {
+        $perPage = $request->input('per_page', 9); // Default to 9 items per page
+        $products = Product::where('is_public', true)
+            ->with(['category', 'images'])
+            ->paginate($perPage);
+
+        \Log::info('Public Products Result:', ['products' => $products->toArray()]);
+
+        return response()->json([
+            'status_code' => 200,
+            'data' => $products->items(),
+            'total' => $products->total(),
+            'current_page' => $products->currentPage(),
+            'last_page' => $products->lastPage(),
+        ], 200, [], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+    }
+
+    // List all products for admin
     public function index()
     {
         $products = Product::with(['images', 'category', 'user'])->get();
         return view('admin.products.index', compact('products'));
     }
 
+    // Show create product form
     public function create()
     {
         $categories = Category::all();
@@ -37,6 +58,7 @@ class ProductController extends Controller
         return view($view, compact('categories'));
     }
 
+    // Store a new product
     public function store(Request $request)
     {
         Log::info('Store method called', ['request_data' => $request->all()]);
@@ -111,12 +133,14 @@ class ProductController extends Controller
         }
     }
 
+    // Show a single product for admin
     public function show(Product $product)
     {
         $product->load(['images', 'category', 'user']);
         return view('admin.products.show', compact('product'));
     }
 
+    // Show edit product form
     public function edit(Product $product)
     {
         if ($product->user_id !== auth()->id()) {
@@ -128,6 +152,7 @@ class ProductController extends Controller
         return view($view, compact('product', 'categories'));
     }
 
+    // Update a product
     public function update(Request $request, Product $product)
     {
         if ($product->user_id !== auth()->id()) {
@@ -199,6 +224,7 @@ class ProductController extends Controller
         }
     }
 
+    // Delete a product
     public function destroy(Product $product)
     {
         try {
@@ -217,5 +243,40 @@ class ProductController extends Controller
             Log::error('Error deleting product: ' . $e->getMessage());
             return back()->withErrors(['error' => 'Failed to delete product.']);
         }
+    }
+
+    // Search public products
+    public function searchProducts(Request $request)
+    {
+        $query = $request->input('query');
+        $products = Product::where('is_public', true)
+            ->where('name', 'like', "%{$query}%")
+            ->with(['category', 'images'])
+            ->get();
+
+        \Log::info('Search Products Result:', ['query' => $query, 'products' => $products->toArray()]);
+
+        return response()->json([
+            'status_code' => 200,
+            'data' => $products->toArray() // Convert to array explicitly
+        ], 200, [], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+    }
+
+    // Show a single public product
+    public function showPublic($id)
+    {
+        $product = Product::where('id', $id)->where('is_public', true)->with(['category', 'images'])->first();
+
+        if (!$product) {
+            return response()->json([
+                'status_code' => 404,
+                'message' => 'Product not found or not public'
+            ], 404);
+        }
+
+        return response()->json([
+            'status_code' => 200,
+            'data' => $product
+        ], 200, [], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
     }
 }

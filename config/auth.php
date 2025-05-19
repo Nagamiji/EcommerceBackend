@@ -1,34 +1,37 @@
 <?php
+// config/auth.php
 
 return [
+
     'defaults' => [
-        'guard' => 'web',
+        'guard'   => 'web',
         'passwords' => 'users',
     ],
+
     'guards' => [
         'web' => [
-            'driver' => 'session',
+            'driver'   => 'session',
             'provider' => 'users',
         ],
-        // Temporarily comment out the api guard
-        // 'api' => [
-        //     'driver' => 'jwt',
-        //     'provider' => 'users',
-        // ],
+
+        // Use Sanctum for “api”
+        'api' => [
+            'driver'   => 'sanctum',
+            'provider' => 'users',
+            // 'hash' => false,
+        ],
     ],
+
     'providers' => [
         'users' => [
             'driver' => 'eloquent',
-            'model' => App\Models\User::class,
+            'model'  => App\Models\User::class,
         ],
     ],
-    'passwords' => [
-        'users' => [
-            'provider' => 'users',
-            'table' => 'password_resets',
-            'expire' => 60,
-            'throttle' => 60,
-        ],
-    ],
+
     'password_timeout' => 10800,
+    // … passwords, timeouts, etc …
 ];
+
+
+    

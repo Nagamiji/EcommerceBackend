@@ -1,54 +1,85 @@
 <?php
 
-use App\Http\Controllers\AuthController;
+use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Log;
+use App\Http\Controllers\APIAuthController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\SellerController;
-use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\CartController;
+use App\Http\Controllers\CheckoutController;
+use App\Http\Controllers\PaymentController;
 
-\Log::info('Loading routes/api.php');
+/*
+|--------------------------------------------------------------------------
+| API Routes
+|--------------------------------------------------------------------------
+|
+| Here is where you register API routes for your application. These routes
+| are loaded by the RouteServiceProvider within a group assigned the 
+| "api" middleware group. Enjoy building your API!
+|
+*/
 
-// Public Routes
-Route::post('/register', [AuthController::class, 'register']);
-Route::post('/login', [AuthController::class, 'login']);
-Route::post('/register-seller', [AuthController::class, 'registerSeller']);
+Log::info('routes/api.php loading … ' . now()->toDateTimeString());
 
-// Public Products Route
-Route::get('/public/products', [ProductController::class, 'publicIndex']);
+/** ------------------------------------------------------------------
+ *  Public routes (no auth required)
+ *  ------------------------------------------------------------------
+ */
+Route::post('register', [APIAuthController::class, 'register']);
+Route::post('login', [APIAuthController::class, 'login']);
+Route::post('register-seller', [APIAuthController::class, 'registerSeller']);
 
-// Protected Routes (require JWT authentication)
-Route::middleware('jwt.auth')->group(function () {
-    Route::post('/logout', [AuthController::class, 'logout']);
-
-    // Product Routes
-    Route::get('/products', [ProductController::class, 'index']);
-    Route::post('/products', [ProductController::class, 'store']);
-    Route::get('/products/{id}', [ProductController::class, 'show']);
-    Route::put('/products/{id}', [ProductController::class, 'update']);
-    Route::delete('/products/{id}', [ProductController::class, 'destroy']);
-
-    // Category Routes
-    Route::get('/categories', [CategoryController::class, 'index']);
-    Route::post('/categories', [CategoryController::class, 'store']);
-    Route::get('/categories/{id}', [CategoryController::class, 'show']);
-    Route::put('/categories/{id}', [CategoryController::class, 'update']);
-    Route::delete('/categories/{id}', [CategoryController::class, 'destroy']);
-
-    // Order Routes
-    Route::get('/orders', [OrderController::class, 'index']);
-    Route::post('/orders', [OrderController::class, 'store']);
-    Route::get('/orders/{id}', [OrderController::class, 'show']);
-    Route::put('/orders/{id}', [OrderController::class, 'update']);
-    Route::delete('/orders/{id}', [OrderController::class, 'destroy']);
-
-    // Seller Routes (API-specific, returns JSON)
-    Route::prefix('seller')->group(function () {
-        Route::get('/dashboard', [SellerController::class, 'dashboard'])->name('api.seller.dashboard');
-        Route::get('/products/create', [SellerController::class, 'createProduct']);
-        Route::post('/products', [SellerController::class, 'storeProduct']);
-        Route::get('/products/{product}/edit', [SellerController::class, 'editProduct']);
-        Route::put('/products/{product}', [SellerController::class, 'updateProduct']);
-        Route::delete('/products/{product}', [SellerController::class, 'destroyProduct']);
-    });
+Route::prefix('public')->group(function () {
+    Route::get('products', [ProductController::class, 'publicIndex']);
+    Route::get('products/{id}', [ProductController::class, 'showPublic']);
+    Route::get('categories', [CategoryController::class, 'publicIndex']);
 });
+
+Route::get('search-products', [ProductController::class, 'searchProducts']);
+
+/** ------------------------------------------------------------------
+ *  Protected routes (auth:sanctum)
+ *  ------------------------------------------------------------------
+ */
+Route::middleware('auth:sanctum')->group(function () {
+    /* --- Auth --- */
+    Route::get('profile', [APIAuthController::class, 'profile']);
+    Route::post('logout', [APIAuthController::class, 'logout']);
+
+    /* --- CRUD resources --- */
+    Route::apiResource('products', ProductController::class)->except(['create', 'edit']);
+    Route::apiResource('categories', CategoryController::class)->except(['create', 'edit']);
+    Route::apiResource('orders', OrderController::class)->except(['create', 'edit']);
+
+    /* --- PayPal checkout --- */
+    Route::post('checkout', [CheckoutController::class, 'checkout']);
+    Route::get('order/paypal/success', [CheckoutController::class, 'success'])->name('order.paypal.success');
+    Route::get('order/paypal/cancel', [CheckoutController::class, 'cancel'])->name('order.paypal.cancel');
+
+    /* --- Seller-only actions --- */
+    Route::prefix('seller')->name('api.seller.')->group(function () {
+        Route::get('dashboard', [SellerController::class, 'dashboard']);
+        Route::get('products/create', [SellerController::class, 'createProduct']);
+        Route::post('products', [SellerController::class, 'storeProduct']);
+        Route::get('products/{product}/edit', [SellerController::class, 'editProduct']);
+        Route::put('products/{product}', [SellerController::class, 'updateProduct']);
+        Route::delete('products/{product}', [SellerController::class, 'destroyProduct']);
+    });
+
+    /* --- Cart --- */
+    Route::prefix('cart')->group(function () {
+        Route::post('add', [CartController::class, 'addToCart']);
+        Route::post('remove', [CartController::class, 'removeFromCart']);
+        Route::get('view', [CartController::class, 'viewCart']);
+        Route::get('count', [CartController::class, 'getCartCount']);
+        Route::post('update-order-status', [CartController::class, 'updateOrderStatus']);
+    });
+
+    /* --- New Pay Later checkout --- */
+    Route::post('checkout/paylater', [CheckoutController::class, 'payLater']);
+});
+
+Log::info('routes/api.php finished loading at ' . now()->toDateTimeString());

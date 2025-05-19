@@ -8,6 +8,7 @@ use Illuminate\Auth\AuthenticationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Validation\ValidationException;
 use Tymon\JWTAuth\Exceptions\JWTException;
+use Illuminate\Support\Facades\Log;
 
 class Handler extends ExceptionHandler
 {
@@ -19,8 +20,22 @@ class Handler extends ExceptionHandler
 
     public function render($request, Throwable $e)
     {
-        if ($request->expectsJson()) {
-            // JWT Authentication exceptions (401 Unauthorized)
+        $isApiRequest = $request->is('api/*');
+        Log::info('Exception Handler Render', [
+            'path' => $request->path(),
+            'is_api' => $isApiRequest,
+            'expects_json' => $request->expectsJson(),
+            'exception' => get_class($e),
+            'message' => $e->getMessage(),
+            'request_headers' => $request->headers->all()
+        ]);
+
+        if ($isApiRequest) {
+            $request->headers->set('Accept', 'application/json');
+            $request->setJson(new \Symfony\Component\HttpFoundation\ParameterBag($request->json()->all()));
+        }
+
+        if ($request->expectsJson() || $isApiRequest) {
             if ($e instanceof JWTException ||
                 $e instanceof \Tymon\JWTAuth\Exceptions\TokenInvalidException ||
                 $e instanceof \Tymon\JWTAuth\Exceptions\TokenExpiredException) {
@@ -30,7 +45,6 @@ class Handler extends ExceptionHandler
                 ], 401);
             }
 
-            // Model Not Found exception (404)
             if ($e instanceof ModelNotFoundException) {
                 return response()->json([
                     'error' => 'Not Found',
@@ -38,7 +52,6 @@ class Handler extends ExceptionHandler
                 ], 404);
             }
 
-            // Validation exception (422)
             if ($e instanceof ValidationException) {
                 return response()->json([
                     'error' => 'Validation Error',
@@ -46,7 +59,6 @@ class Handler extends ExceptionHandler
                 ], 422);
             }
 
-            // Authentication exception (401)
             if ($e instanceof AuthenticationException) {
                 return response()->json([
                     'error' => 'Unauthenticated',
@@ -54,14 +66,22 @@ class Handler extends ExceptionHandler
                 ], 401);
             }
 
-            // General Server Error (500)
             return response()->json([
                 'error' => 'Server Error',
                 'details' => config('app.debug') ? $e->getMessage() : 'An unexpected error occurred. Please try again later.'
             ], 500);
         }
 
-        // For non-API requests, return the default behavior (views, etc.)
         return parent::render($request, $e);
+    }
+
+    public function renderForConsole($output, Throwable $e)
+    {
+        Log::error('Console Exception', [
+            'message' => $e->getMessage(),
+            'file' => $e->getFile(),
+            'line' => $e->getLine()
+        ]);
+        parent::renderForConsole($output, $e);
     }
 }
