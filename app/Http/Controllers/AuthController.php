@@ -4,85 +4,66 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 class AuthController extends Controller
 {
-    /**
-     * Show the login form.
-     *
-     * @return \Illuminate\View\View
-     */
     public function showLoginForm()
     {
         if (Auth::check()) {
             $user = Auth::user();
-            \Log::info('User already authenticated, redirecting', [
-                'user_email' => $user->email,
-                'is_admin' => $user->is_admin,
+            Log::info('User already authenticated, redirecting', [
+                'user_id' => $user->id,
+                'email' => $user->email,
                 'role' => $user->role,
+                'session_id' => session()->getId(),
             ]);
             if ($user->is_admin) {
                 return redirect()->route('admin.dashboard');
             } elseif ($user->role === 'seller') {
                 return redirect()->route('seller.dashboard');
-            } else {
-                return redirect()->route('home');
             }
+            return redirect()->route('home');
         }
-
-        \Log::info('User not authenticated, showing login form');
         return view('auth.login');
     }
 
-    /**
-     * Handle login request.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\RedirectResponse
-     */
     public function login(Request $request)
     {
-        // Validate the login request
         $request->validate([
             'email' => 'required|email',
             'password' => 'required|string',
         ]);
 
-        $credentials = $request->only('email', 'password');
-
-        // Attempt to authenticate the user
-        if (Auth::attempt($credentials)) {
-            \Log::info('Login successful for user: ' . Auth::user()->email);
-
-            // Regenerate session to prevent session fixation
-            $request->session()->regenerate();
-
-            // Redirect based on user role
+        if (Auth::attempt($request->only('email', 'password'))) {
             $user = Auth::user();
+            Log::info('Login successful', [
+                'user_id' => $user->id,
+                'email' => $user->email,
+                'role' => $user->role,
+                'session_id' => session()->getId(),
+            ]);
             if ($user->is_admin) {
                 return redirect()->intended(route('admin.dashboard'));
             } elseif ($user->role === 'seller') {
                 return redirect()->intended(route('seller.dashboard'));
-            } else {
-                return redirect()->intended(route('home'));
             }
+            return redirect()->intended(route('home'));
         }
 
-        // If authentication fails, redirect back with error
-        return back()->withErrors([
-            'email' => 'The provided credentials do not match our records.',
-        ])->onlyInput('email');
+        Log::warning('Login failed', [
+            'email' => $request->email,
+            'session_id' => session()->getId(),
+        ]);
+        return back()->withErrors(['email' => 'Invalid credentials'])->onlyInput('email');
     }
 
-    /**
-     * Handle logout request.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\RedirectResponse
-     */
     public function logout(Request $request)
     {
-        \Log::info('Logout triggered for user: ' . (Auth::check() ? Auth::user()->email : 'Unknown'));
+        Log::info('Logout', [
+            'user_id' => Auth::id(),
+            'session_id' => session()->getId(),
+        ]);
         Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();

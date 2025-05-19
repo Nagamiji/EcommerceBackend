@@ -32,10 +32,11 @@
             <div class="modal-content">
                 <div class="modal-header">
                     <h4 class="modal-title" id="modal-title">Add Product</h4>
-                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <button type="button" class="close" data-dismiss="modal">×</button>
                 </div>
                 <div class="modal-body">
                     <form id="product-form">
+                        @csrf
                         <input type="hidden" id="product-id">
                         <div class="form-group">
                             <label for="name">Name</label>
@@ -74,55 +75,65 @@
     </div>
 
     <script>
-        const token = localStorage.getItem('token');
-        if (!token) {
-            window.location.href = '{{ route('login') }}';
-        }
-
-        // Fetch Categories for Dropdown
-        fetch('/api/categories', {
-            headers: {
-                'Authorization': `Bearer ${token}`
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            const select = document.getElementById('category_id');
-            data.forEach(category => {
-                const option = document.createElement('option');
-                option.value = category.id;
-                option.textContent = category.name;
-                select.appendChild(option);
+        // Initialize CSRF token
+        fetch('/sanctum/csrf-cookie', { credentials: 'include' })
+            .then(() => {
+                console.log('CSRF token fetched');
+                loadCategories();
+                loadProducts();
+            })
+            .catch(error => {
+                console.error('Error fetching CSRF token:', error);
+                window.location.href = '{{ route('login') }}';
             });
-        });
+
+        // Fetch Categories
+        function loadCategories() {
+            fetch('/api/categories', { credentials: 'include' })
+                .then(response => {
+                    if (!response.ok) throw new Error('Failed to fetch categories');
+                    return response.json();
+                })
+                .then(data => {
+                    const select = document.getElementById('category_id');
+                    select.innerHTML = '<option value="">Select Category</option>';
+                    data.forEach(category => {
+                        const option = document.createElement('option');
+                        option.value = category.id;
+                        option.textContent = category.name;
+                        select.appendChild(option);
+                    });
+                })
+                .catch(error => console.error('Error loading categories:', error));
+        }
 
         // Fetch Products
         function loadProducts() {
-            fetch('/api/products', {
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                const tbody = document.getElementById('products-table');
-                tbody.innerHTML = '';
-                data.forEach(product => {
-                    const row = document.createElement('tr');
-                    row.innerHTML = `
-                        <td>${product.id}</td>
-                        <td>${product.name}</td>
-                        <td>${product.price}</td>
-                        <td>${product.stock}</td>
-                        <td>${product.category ? product.category.name : 'N/A'}</td>
-                        <td>
-                            <button class="btn btn-sm btn-primary" onclick="editProduct(${product.id})">Edit</button>
-                            <button class="btn btn-sm btn-danger" onclick="deleteProduct(${product.id})">Delete</button>
-                        </td>
-                    `;
-                    tbody.appendChild(row);
-                });
-            });
+            fetch('/api/products', { credentials: 'include' })
+                .then(response => {
+                    if (!response.ok) throw new Error('Failed to fetch products');
+                    return response.json();
+                })
+                .then(data => {
+                    const tbody = document.getElementById('products-table');
+                    tbody.innerHTML = '';
+                    data.forEach(product => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>${product.id}</td>
+                            <td>${product.name}</td>
+                            <td>${product.price}</td>
+                            <td>${product.stock_quantity}</td>
+                            <td>${product.category ? product.category.name : 'N/A'}</td>
+                            <td>
+                                <button class="btn btn-sm btn-primary" onclick="editProduct(${product.id})">Edit</button>
+                                <button class="btn btn-sm btn-danger" onclick="deleteProduct(${product.id})">Delete</button>
+                            </td>
+                        `;
+                        tbody.appendChild(row);
+                    });
+                })
+                .catch(error => console.error('Error loading products:', error));
         }
 
         // Show Add Product Modal
@@ -135,23 +146,23 @@
 
         // Edit Product
         function editProduct(id) {
-            fetch(`/api/products/${id}`, {
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
-            })
-            .then(response => response.json())
-            .then(product => {
-                document.getElementById('product-id').value = product.id;
-                document.getElementById('name').value = product.name;
-                document.getElementById('description').value = product.description || '';
-                document.getElementById('price').value = product.price;
-                document.getElementById('stock').value = product.stock;
-                document.getElementById('category_id').value = product.category_id;
-                document.getElementById('is_public').checked = product.is_public;
-                document.getElementById('modal-title').textContent = 'Edit Product';
-                $('#productModal').modal('show');
-            });
+            fetch(`/api/products/${id}`, { credentials: 'include' })
+                .then(response => {
+                    if (!response.ok) throw new Error('Failed to fetch product');
+                    return response.json();
+                })
+                .then(product => {
+                    document.getElementById('product-id').value = product.id;
+                    document.getElementById('name').value = product.name;
+                    document.getElementById('description').value = product.description || '';
+                    document.getElementById('price').value = product.price;
+                    document.getElementById('stock').value = product.stock_quantity;
+                    document.getElementById('category_id').value = product.category_id;
+                    document.getElementById('is_public').checked = product.is_public;
+                    document.getElementById('modal-title').textContent = 'Edit Product';
+                    $('#productModal').modal('show');
+                })
+                .catch(error => console.error('Error editing product:', error));
         }
 
         // Save Product
@@ -161,28 +172,26 @@
                 name: document.getElementById('name').value,
                 description: document.getElementById('description').value,
                 price: parseFloat(document.getElementById('price').value),
-                stock: parseInt(document.getElementById('stock').value),
+                stock_quantity: parseInt(document.getElementById('stock').value),
                 category_id: parseInt(document.getElementById('category_id').value),
                 is_public: document.getElementById('is_public').checked,
             };
 
-            const method = id ? 'PUT' : 'POST';
-            const url = id ? `/api/products/${id}` : '/api/products';
-
-            fetch(url, {
-                method,
+            fetch(id ? `/api/products/${id}` : '/api/products', {
+                method: id ? 'PUT' : 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || ''
                 },
+                credentials: 'include',
                 body: JSON.stringify(product)
             })
-            .then(response => {
-                if (!response.ok) throw new Error('Failed to save product');
-                $('#productModal').modal('hide');
-                loadProducts();
-            })
-            .catch(error => alert(error.message));
+                .then(response => {
+                    if (!response.ok) throw new Error('Failed to save product');
+                    $('#productModal').modal('hide');
+                    loadProducts();
+                })
+                .catch(error => alert(error.message));
         }
 
         // Delete Product
@@ -191,18 +200,16 @@
                 fetch(`/api/products/${id}`, {
                     method: 'DELETE',
                     headers: {
-                        'Authorization': `Bearer ${token}`
-                    }
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || ''
+                    },
+                    credentials: 'include'
                 })
-                .then(response => {
-                    if (!response.ok) throw new Error('Failed to delete product');
-                    loadProducts();
-                })
-                .catch(error => alert(error.message));
+                    .then(response => {
+                        if (!response.ok) throw new Error('Failed to delete product');
+                        loadProducts();
+                    })
+                    .catch(error => alert(error.message));
             }
         }
-
-        // Load Products on Page Load
-        loadProducts();
     </script>
 @endsection

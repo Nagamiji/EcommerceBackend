@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use App\Models\User;
 
 class APIAuthController extends Controller
 {
@@ -125,6 +126,12 @@ class APIAuthController extends Controller
         ], 201);
     }
 
+    /**
+     * Get authenticated user profile.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function profile(Request $request)
     {
         $user = $request->user();
@@ -137,5 +144,18 @@ class APIAuthController extends Controller
                 'is_admin' => $user->is_admin,
             ]
         ], 200);
+    }
+
+    /**
+     * Get list of users (for admin use).
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function apiUsers(Request $request)
+    {
+        $this->middleware('admin'); // Restrict to admins
+        $users = User::select('id', 'name')->get();
+        return response()->json($users, 200, [], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
     }
 }

@@ -1,8 +1,8 @@
-@extends('layouts.admin')
 
-@section('title', 'Categories')
 
-@section('content')
+<?php $__env->startSection('title', 'Categories'); ?>
+
+<?php $__env->startSection('content'); ?>
 <div class="content-wrapper">
     <div class="content-header">
         <div class="container-fluid">
@@ -18,16 +18,18 @@
     </div>
     <section class="content">
         <div class="container-fluid">
-            @if(session('success'))
+            <?php if(session('success')): ?>
                 <div class="alert alert-success">
-                    {{ session('success') }}
+                    <?php echo e(session('success')); ?>
+
                 </div>
-            @endif
-            @if(session('error'))
+            <?php endif; ?>
+            <?php if(session('error')): ?>
                 <div class="alert alert-danger">
-                    {{ session('error') }}
+                    <?php echo e(session('error')); ?>
+
                 </div>
-            @endif
+            <?php endif; ?>
             <div class="card">
                 <div class="card-body">
                     <div class="mb-3">
@@ -80,9 +82,9 @@
         </div>
     </div>
 </div>
-@endsection
+<?php $__env->stopSection(); ?>
 
-@section('scripts')
+<?php $__env->startSection('scripts'); ?>
 <script>
     let currentPage = 1;
     let perPage = 10;
@@ -112,7 +114,7 @@
         .catch(error => {
             console.error('Error fetching CSRF token:', error);
             alert('Failed to initialize session: ' + error.message);
-            window.location.href = '{{ route('login') }}';
+            window.location.href = '<?php echo e(route('login')); ?>';
         });
 
     // Load Categories
@@ -323,4 +325,5 @@
         }
     }
 </script>
-@endsection
+<?php $__env->stopSection(); ?>
+<?php echo $__env->make('layouts.admin', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH D:\Year 4\S2\E-COMMERCE\backend1\resources\views/admin/categories/index.blade.php ENDPATH**/ ?>

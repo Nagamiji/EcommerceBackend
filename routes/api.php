@@ -6,17 +6,15 @@ use App\Http\Controllers\APIAuthController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\OrderController;
-use App\Http\Controllers\SellerController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\CheckoutController;
-use App\Http\Controllers\PaymentController;
 
 /*
 |--------------------------------------------------------------------------
 | API Routes
 |--------------------------------------------------------------------------
 |
-| Here is where you register API routes for your application. These routes
+| Here is where you can register API routes for your application. These routes
 | are loaded by the RouteServiceProvider within a group assigned the 
 | "api" middleware group. Enjoy building your API!
 |
@@ -40,34 +38,49 @@ Route::prefix('public')->group(function () {
 
 Route::get('search-products', [ProductController::class, 'searchProducts']);
 
+// Unauthenticated Categories Route
+Route::get('/categories', [CategoryController::class, 'index']);
+
 /** ------------------------------------------------------------------
  *  Protected routes (auth:sanctum)
  *  ------------------------------------------------------------------
  */
 Route::middleware('auth:sanctum')->group(function () {
+    Log::info('Sanctum middleware processing', [
+        'user_authenticated' => auth('sanctum')->check() ? 'yes' : 'no',
+        'user_id' => auth('sanctum')->check() ? auth('sanctum')->id() : 'none',
+        'path' => request()->path(),
+        'session_id' => session()->getId(),
+    ]);
+
     /* --- Auth --- */
     Route::get('profile', [APIAuthController::class, 'profile']);
     Route::post('logout', [APIAuthController::class, 'logout']);
+    Route::get('users', [APIAuthController::class, 'apiUsers']);
 
-    /* --- CRUD resources --- */
-    Route::apiResource('products', ProductController::class)->except(['create', 'edit']);
-    Route::apiResource('categories', CategoryController::class)->except(['create', 'edit']);
-    Route::apiResource('orders', OrderController::class)->except(['create', 'edit']);
+    /* --- Product routes --- */
+    Route::get('/products', [ProductController::class, 'apiIndex']);
+    Route::get('/products/{product}', [ProductController::class, 'apiShow']);
+    Route::post('/products', [ProductController::class, 'apiStore']);
+    Route::put('/products/{product}', [ProductController::class, 'apiUpdate']);
+    Route::delete('/products/{product}', [ProductController::class, 'apiDestroy']);
+    Route::get('/categories', [ProductController::class, 'apiCategories']);
+
+    /* --- Order routes --- */
+    Route::get('/orders', [OrderController::class, 'apiIndex']);
+    Route::get('/orders/{order}', [OrderController::class, 'apiShow']);
+    Route::post('/orders', [OrderController::class, 'apiStore']);
+    Route::put('/orders/{order}', [OrderController::class, 'apiUpdate']);
+    Route::delete('/orders/{order}', [ProductController::class, 'apiDestroy']);
+    Route::get('/user/orders', [OrderController::class, 'apiUserOrders']);
+
+    /* --- Category routes --- */
+    Route::apiResource('categories', CategoryController::class)->except(['index', 'create', 'edit']);
 
     /* --- PayPal checkout --- */
     Route::post('checkout', [CheckoutController::class, 'checkout']);
     Route::get('order/paypal/success', [CheckoutController::class, 'success'])->name('order.paypal.success');
     Route::get('order/paypal/cancel', [CheckoutController::class, 'cancel'])->name('order.paypal.cancel');
-
-    /* --- Seller-only actions --- */
-    Route::prefix('seller')->name('api.seller.')->group(function () {
-        Route::get('dashboard', [SellerController::class, 'dashboard']);
-        Route::get('products/create', [SellerController::class, 'createProduct']);
-        Route::post('products', [SellerController::class, 'storeProduct']);
-        Route::get('products/{product}/edit', [SellerController::class, 'editProduct']);
-        Route::put('products/{product}', [SellerController::class, 'updateProduct']);
-        Route::delete('products/{product}', [SellerController::class, 'destroyProduct']);
-    });
 
     /* --- Cart --- */
     Route::prefix('cart')->group(function () {
@@ -78,7 +91,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('update-order-status', [CartController::class, 'updateOrderStatus']);
     });
 
-    /* --- New Pay Later checkout --- */
+    /* --- Pay Later checkout --- */
     Route::post('checkout/paylater', [CheckoutController::class, 'payLater']);
 });
 

@@ -2,104 +2,79 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Product;
 use App\Models\Category;
 use App\Models\Order;
-use App\Models\Product;
 use App\Models\User;
-use Carbon\Carbon;
+use App\Models\Cart;
+use App\Models\OrderItem;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\DB;
 
 class AdminController extends Controller
 {
     public function __construct()
     {
-        $this->middleware('admin');
+        $this->middleware(['auth', 'admin']);
     }
 
     public function dashboard()
     {
-        Log::info('Dashboard accessed by user: ' . (auth()->check() ? auth()->user()->email : 'unauthenticated'));
-
-        if (!auth()->check() || !auth()->user()->isAdmin()) {
-            return response()->json(['error' => 'Unauthorized'], 401);
-        }
-
         $totalProducts = Product::count();
         $totalCategories = Category::count();
         $totalOrders = Order::count();
-        $totalRevenue = Order::sum('total_price');
         $pendingPayments = Order::where('status', 'pending')->count();
-
-        $topSellers = \DB::table('products')
-            ->select('user_id', \DB::raw('count(*) as product_count'), \DB::raw('sum(price * stock_quantity) as revenue'))
-            ->groupBy('user_id')
-            ->orderBy('revenue', 'desc')
-            ->take(5)
-            ->get()
-            ->map(function ($item) {
-                $user = User::find($item->user_id);
-                return (object) ['user' => $user, 'product_count' => $item->product_count, 'revenue' => $item->revenue];
-            });
-
-        $topSellingProducts = \DB::table('order_items')
-            ->select('product_id', \DB::raw('sum(quantity) as quantity'))
-            ->join('products', 'order_items.product_id', '=', 'products.id')
-            ->groupBy('product_id')
-            ->orderBy('quantity', 'desc')
-            ->take(5)
-            ->get()
-            ->map(function ($item) {
-                $product = Product::find($item->product_id);
-                return (object) ['product' => $product, 'quantity' => $item->quantity];
-            });
-
-        $orderData = Order::selectRaw('DATE(created_at) as date, COUNT(*) as count')
-            ->groupBy('date')
-            ->where('created_at', '>=', Carbon::now()->subDays(5))
-            ->orderBy('date')
-            ->get()
-            ->pluck('count', 'date')
-            ->all();
-        $orderLabels = array_keys($orderData);
-        $orderValues = array_values($orderData);
-
+        $totalRevenue = Order::where('status', 'completed')->sum('total_price');
         $totalUsers = User::count();
+        $lowStockProducts = Product::where('stock_quantity', '<', 10)->count();
         $customers = User::where('role', 'customer')->count();
         $sellers = User::where('role', 'seller')->count();
-        $admins = User::where('is_admin', 1)->count();
-        $newUsersToday = User::whereDate('created_at', Carbon::today())->count();
-        $activeCarts = 0; // Implement cart logic if needed
-        $lowStockProducts = Product::where('stock_quantity', '<', 10)->count();
-
+        $admins = User::where('role', 'admin')->orWhere('is_admin', true)->count();
+        $newUsersToday = User::whereDate('created_at', today())->count();
+        $activeCarts = Cart::whereNotNull('user_id')->count();
         $recentOrders = Order::with('user')->latest()->take(5)->get();
-        $categoriesWithProducts = Category::withCount('products')->orderBy('products_count', 'desc')->take(5)->get();
+        $topSellingProducts = OrderItem::with('product')
+            ->select('product_id', DB::raw('SUM(quantity) as quantity'))
+            ->groupBy('product_id')
+            ->orderByDesc('quantity')
+            ->take(5)
+            ->get();
+        $categoriesWithProducts = Category::withCount('products')->get();
+        $orderData = Order::select(DB::raw("DATE(created_at) as date"), DB::raw('COUNT(*) as count'))
+            ->groupBy('date')
+            ->orderBy('date', 'asc')
+            ->take(30)
+            ->get();
+        $orderLabels = $orderData->pluck('date');
+        $orderValues = $orderData->pluck('count');
+
+        Log::info('Admin dashboard accessed', [
+            'user_id' => Auth::id(),
+            'email' => Auth::user()->email,
+            'session_id' => session()->getId(),
+            'role' => Auth::user()->role,
+        ]);
 
         return view('admin.dashboard', compact(
-            'totalProducts', 'totalCategories', 'totalOrders', 'totalRevenue',
-            'pendingPayments', 'topSellers', 'topSellingProducts', 'orderLabels',
-            'orderValues', 'totalUsers', 'customers', 'sellers', 'admins',
-            'newUsersToday', 'activeCarts', 'lowStockProducts', 'recentOrders',
-            'categoriesWithProducts'
+            'totalProducts',
+            'totalCategories',
+            'totalOrders',
+            'pendingPayments',
+            'totalRevenue',
+            'totalUsers',
+            'lowStockProducts',
+            'customers',
+            'sellers',
+            'admins',
+            'newUsersToday',
+            'activeCarts',
+            'recentOrders',
+            'topSellingProducts',
+            'categoriesWithProducts',
+            'orderLabels',
+            'orderValues'
         ));
-    }
-
-    public function registerSeller(Request $request)
-    {
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email',
-            'password' => 'required|string|min:6',
-        ]);
-
-        $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => bcrypt($request->password),
-            'role' => 'seller',
-            'is_admin' => false,
-        ]);
-
-        return redirect()->back()->with('success', 'Seller registered successfully.');
     }
 }

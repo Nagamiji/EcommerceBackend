@@ -25,42 +25,34 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 Route::prefix('admin')->middleware(['auth', 'admin'])->group(function () {
     Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('admin.dashboard');
     Route::post('/register-seller', [AdminController::class, 'registerSeller'])->name('admin.register-seller');
-    Route::resource('products', ProductController::class);
-    Route::resource('categories', CategoryController::class);
+    Route::resource('products', ProductController::class)->names([
+        'index' => 'products.index',
+        'create' => 'products.create',
+        'store' => 'products.store',
+        'show' => 'products.show',
+        'edit' => 'products.edit',
+        'update' => 'products.update',
+        'destroy' => 'products.destroy',
+    ]);
     Route::resource('orders', OrderController::class);
-
-
-
-    // Add seller actions under admin
-    Route::get('/seller/dashboard', [SellerController::class, 'dashboard'])->name('seller.dashboard');
-    Route::get('/seller/products/create', [SellerController::class, 'createProduct'])->name('seller.products.create');
-    Route::post('/seller/products', [SellerController::class, 'storeProduct'])->name('seller.products.store');
-    Route::get('/seller/products/{product}/edit', [SellerController::class, 'editProduct'])->name('seller.products.edit');
-    Route::put('/seller/products/{product}', [SellerController::class, 'updateProduct'])->name('seller.products.update');
-    Route::delete('/seller/products/{product}', [SellerController::class, 'destroyProduct'])->name('seller.products.destroy');
+    Route::resource('categories', CategoryController::class)->except(['show']);
+    Route::get('/categories/{category}', [CategoryController::class, 'showWeb'])->name('categories.show');
 });
 
-// Route::prefix('seller')->group(function () {
-//     Route::get('/dashboard', [SellerController::class, 'dashboard'])
-//         ->name('seller.dashboard')
-//         ->middleware(['auth', \App\Http\Middleware\Seller::class]);
-//     Route::get('/products/create', [SellerController::class, 'createProduct'])
-//         ->name('seller.products.create')
-//         ->middleware(['auth', \App\Http\Middleware\Seller::class]);
-//     Route::post('/products', [SellerController::class, 'storeProduct'])
-//         ->name('seller.products.store')
-//         ->middleware(['auth', \App\Http\Middleware\Seller::class]);
-//     Route::get('/products/{product}/edit', [SellerController::class, 'editProduct'])
-//         ->name('seller.products.edit')
-//         ->middleware(['auth', \App\Http\Middleware\Seller::class]);
-//     Route::put('/products/{product}', [SellerController::class, 'updateProduct'])
-//         ->name('seller.products.update')
-//         ->middleware(['auth', \App\Http\Middleware\Seller::class]);
-//     Route::delete('/products/{product}', [SellerController::class, 'destroyProduct'])
-//         ->name('seller.products.destroy')
-//         ->middleware(['auth', \App\Http\Middleware\Seller::class]);
-// });
+Route::prefix('seller')->middleware(['auth', 'seller'])->group(function () {
+    Route::get('/dashboard', [SellerController::class, 'dashboard'])->name('seller.dashboard');
+    Route::get('/products/create', [SellerController::class, 'createProduct'])->name('seller.products.create');
+    Route::post('/products', [SellerController::class, 'storeProduct'])->name('seller.products.store');
+    Route::get('/products/{product}/edit', [SellerController::class, 'editProduct'])->name('seller.products.edit');
+    Route::put('/products/{product}', [SellerController::class, 'updateProduct'])->name('seller.products.update');
+    Route::delete('/products/{product}', [SellerController::class, 'destroyProduct'])->name('seller.products.destroy');
+});
 
+Route::prefix('api')->middleware('api')->group(function () {
+    Route::get('/products', [ProductController::class, 'publicIndex']);
+    Route::get('/categories', [CategoryController::class, 'publicIndex']);
+    Route::get('/orders', [OrderController::class, 'index']);
+});
 
 Route::get('/test-seller', function () {
     try {

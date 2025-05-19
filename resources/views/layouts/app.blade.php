@@ -54,19 +54,19 @@
                                     </a>
                                 </li>
                                 <li class="nav-item">
-                                    <a href="{{ url('admin/products') }}" class="nav-link">
+                                    <a href="{{ route('products.index') }}" class="nav-link">
                                         <i class="nav-icon fas fa-box"></i>
                                         <p>Products</p>
                                     </a>
                                 </li>
                                 <li class="nav-item">
-                                    <a href="{{ url('admin/categories') }}" class="nav-link">
+                                    <a href="{{ route('categories.index') }}" class="nav-link">
                                         <i class="nav-icon fas fa-tags"></i>
                                         <p>Categories</p>
                                     </a>
                                 </li>
                                 <li class="nav-item">
-                                    <a href="{{ url('admin/orders') }}" class="nav-link">
+                                    <a href="{{ route('orders.index') }}" class="nav-link">
                                         <i class="nav-icon fas fa-shopping-cart"></i>
                                         <p>Orders</p>
                                     </a>
