@@ -17,9 +17,6 @@ Route::get('/home', [HomeController::class, 'index'])->name('home')->middleware(
 
 Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login')->middleware('guest');
 Route::post('/login', [AuthController::class, 'login']);
-Route::get('/logout', function () {
-    return redirect()->route('login')->with('error', 'Please use the logout button in the navbar.');
-})->name('logout.get');
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
 Route::prefix('admin')->middleware(['auth', 'admin'])->group(function () {
@@ -48,10 +45,15 @@ Route::prefix('seller')->middleware(['auth', 'seller'])->group(function () {
     Route::delete('/products/{product}', [SellerController::class, 'destroyProduct'])->name('seller.products.destroy');
 });
 
-Route::prefix('api')->middleware('api')->group(function () {
-    Route::get('/products', [ProductController::class, 'publicIndex']);
-    Route::get('/categories', [CategoryController::class, 'publicIndex']);
-    Route::get('/orders', [OrderController::class, 'index']);
+Route::prefix('api')->group(function () {
+    Route::middleware('api.public')->group(function () {
+        Route::get('/products', [ProductController::class, 'publicIndex']);
+        Route::get('/categories', [CategoryController::class, 'publicIndex']);
+    });
+
+    Route::middleware('auth:sanctum')->group(function () {
+        Route::get('/orders', [OrderController::class, 'index']);
+    });
 });
 
 Route::get('/test-seller', function () {

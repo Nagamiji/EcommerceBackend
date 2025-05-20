@@ -15,6 +15,8 @@ class RouteServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        Log::info('Session ID on boot: ' . session()->getId());
+
         RateLimiter::for('api', function (Request $request) {
             return Limit::perMinute(60)->by($request->user()?->id ?: $request->ip());
         });

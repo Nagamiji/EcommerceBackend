@@ -17,6 +17,7 @@ class RedirectIfAuthenticated
             'method' => $request->method(),
             'is_authenticated' => Auth::check(),
             'session_id' => $request->session()->getId(),
+            'guards' => $guards,
         ]);
 
         foreach ($guards as $guard) {
@@ -24,18 +25,29 @@ class RedirectIfAuthenticated
                 $user = Auth::user();
                 \Log::info('Authenticated user tried to access restricted page', [
                     'user' => $user->email ?? 'unknown',
-                    'is_admin' => $user->is_admin,
-                    'role' => $user->role,
+                    'user_id' => $user->id ?? 'unknown',
+                    'is_admin' => $user->is_admin ?? false,
+                    'role' => $user->role ?? 'none',
+                    'session_id' => $request->session()->getId(),
                 ]);
 
                 if ($user->is_admin) {
-                    \Log::info('Redirecting admin to dashboard', ['redirecting_to' => route('admin.dashboard')]);
+                    \Log::info('Redirecting admin to dashboard', [
+                        'redirecting_to' => route('admin.dashboard'),
+                        'session_id' => $request->session()->getId(),
+                    ]);
                     return redirect()->route('admin.dashboard');
                 } elseif ($user->role === 'seller') {
-                    \Log::info('Redirecting seller to dashboard', ['redirecting_to' => route('seller.dashboard')]);
+                    \Log::info('Redirecting seller to dashboard', [
+                        'redirecting_to' => route('seller.dashboard'),
+                        'session_id' => $request->session()->getId(),
+                    ]);
                     return redirect()->route('seller.dashboard');
                 } else {
-                    \Log::info('Redirecting regular user to home', ['redirecting_to' => route('home')]);
+                    \Log::info('Redirecting regular user to home', [
+                        'redirecting_to' => route('home'),
+                        'session_id' => $request->session()->getId(),
+                    ]);
                     return redirect()->route('home');
                 }
             }
@@ -43,6 +55,7 @@ class RedirectIfAuthenticated
 
         \Log::info('Guest middleware passed, user is not authenticated', [
             'session_id' => $request->session()->getId(),
+            'path' => $request->path(),
         ]);
         return $next($request);
     }

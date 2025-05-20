@@ -56,6 +56,7 @@ class CategoryController extends Controller
         $categories = Category::withCount('products')->get();
         Log::info('CategoryController: Displaying categories index', [
             'count' => $categories->count(),
+            'categories_data' => $categories->toArray(),
             'user_id' => Auth::id(),
             'session_id' => session()->getId(),
         ]);
@@ -65,11 +66,23 @@ class CategoryController extends Controller
 
     public function create()
     {
+        Log::info('CategoryController@create called', [
+            'user_id' => Auth::id(),
+            'session_id' => session()->getId(),
+        ]);
         return view('admin.categories.create');
     }
 
     public function store(Request $request)
     {
+        Log::info('CategoryController@store called', [
+            'user_id' => Auth::id(),
+            'session_id' => session()->getId(),
+            'method' => $request->method(),
+            'data' => $request->all(),
+            'csrf_token' => csrf_token(),
+        ]);
+
         try {
             $request->validate([
                 'name' => 'required|string|max:255|unique:categories,name',
@@ -82,10 +95,12 @@ class CategoryController extends Controller
             ]);
 
             $category = Category::create($request->only('name', 'description'));
+            Log::info('CategoryController@store success', ['category_id' => $category->id]);
             return $request->expectsJson()
                 ? response()->json(['status' => 'success', 'message' => 'Category created successfully', 'data' => $category], 201)
                 : redirect()->route('categories.index')->with('success', 'Category created successfully.');
         } catch (ValidationException $e) {
+            Log::error('CategoryController@store validation failed', ['errors' => $e->errors()]);
             return $request->expectsJson()
                 ? response()->json(['status' => 'error', 'errors' => $e->errors()], 422)
                 : back()->withErrors($e->errors())->withInput();
@@ -104,6 +119,7 @@ class CategoryController extends Controller
     public function show($id)
     {
         try {
+            Log::info('CategoryController@show called', ['category_id' => $id]);
             $category = Category::withCount('products')->findOrFail($id);
             return response()->json([
                 'status' => 'success',
@@ -125,17 +141,37 @@ class CategoryController extends Controller
 
     public function showWeb(Category $category)
     {
+        Log::info('CategoryController@showWeb called', [
+            'category_id' => $category->id,
+            'category_data' => $category->toArray(),
+            'user_id' => Auth::id(),
+            'session_id' => session()->getId(),
+            'route' => request()->route()->uri(),
+            'full_url' => request()->fullUrl(),
+        ]);
         $category->loadCount('products');
+        Log::info('CategoryController@showWeb loaded products count', [
+            'category_id' => $category->id,
+            'products_count' => $category->products_count,
+        ]);
         return view('admin.categories.show', compact('category'));
     }
 
     public function edit(Category $category)
     {
+        Log::info('CategoryController@edit called', ['category_id' => $category->id]);
         return view('admin.categories.edit', compact('category'));
     }
 
     public function update(Request $request, Category $category)
     {
+        Log::info('CategoryController@update called', [
+            'category_id' => $category->id,
+            'method' => $request->method(),
+            'data' => $request->all(),
+            'csrf_token' => csrf_token(),
+        ]);
+
         try {
             $request->validate([
                 'name' => 'required|string|max:255|unique:categories,name,' . $category->id,
@@ -148,10 +184,12 @@ class CategoryController extends Controller
             ]);
 
             $category->update($request->only('name', 'description'));
+            Log::info('CategoryController@update success', ['category_id' => $category->id]);
             return $request->expectsJson()
                 ? response()->json(['status' => 'success', 'message' => 'Category updated successfully', 'data' => $category], 200)
                 : redirect()->route('categories.index')->with('success', 'Category updated successfully.');
         } catch (ValidationException $e) {
+            Log::error('CategoryController@update validation failed', ['errors' => $e->errors()]);
             return $request->expectsJson()
                 ? response()->json(['status' => 'error', 'errors' => $e->errors()], 422)
                 : back()->withErrors($e->errors())->withInput();
@@ -170,14 +208,32 @@ class CategoryController extends Controller
 
     public function destroy(Category $category)
     {
+        Log::info('CategoryController@destroy called', [
+            'category_id' => $category->id,
+            'user_id' => Auth::id(),
+            'session_id' => session()->getId(),
+            'method' => request()->method(),
+            'csrf_token' => csrf_token(),
+            'request_data' => request()->all(),
+        ]);
+
         try {
-            if ($category->products()->exists()) {
+            $hasProducts = $category->products()->exists();
+            Log::info('CategoryController@destroy checked for products', [
+                'category_id' => $category->id,
+                'has_products' => $hasProducts,
+            ]);
+            if ($hasProducts) {
+                Log::warning('CategoryController@destroy failed: Category has products', [
+                    'category_id' => $category->id,
+                ]);
                 return request()->expectsJson()
                     ? response()->json(['status' => 'error', 'message' => 'Cannot delete category with associated products'], 400)
-                    : back()->with('error', 'Cannot delete category with associated products.');
+                    : redirect()->route('categories.index')->with('error', 'Cannot delete category with associated products.');
             }
 
             $category->delete();
+            Log::info('CategoryController@destroy success', ['category_id' => $category->id]);
             return request()->expectsJson()
                 ? response()->json(['status' => 'success', 'message' => 'Category deleted successfully'], 200)
                 : redirect()->route('categories.index')->with('success', 'Category deleted successfully.');
@@ -190,7 +246,7 @@ class CategoryController extends Controller
             ]);
             return request()->expectsJson()
                 ? response()->json(['status' => 'error', 'message' => 'Failed to delete category'], 500)
-                : back()->with('error', 'Failed to delete category. Please try again.');
+                : redirect()->route('categories.index')->with('error', 'Failed to delete category. Please try again.');
         }
     }
 

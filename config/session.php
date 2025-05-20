@@ -1,7 +1,7 @@
 <?php
 
 return [
-    'driver' => env('SESSION_DRIVER', 'file'),
+    'driver' => env('SESSION_DRIVER', 'file'), // Changed default to 'file'
     'lifetime' => env('SESSION_LIFETIME', 120),
     'expire_on_close' => false,
     'encrypt' => false,
@@ -12,8 +12,8 @@ return [
     'lottery' => [2, 100],
     'cookie' => env('SESSION_COOKIE', 'laravel_session'),
     'path' => '/',
-    'domain' => env('SESSION_DOMAIN', '127.0.0.1'),
+    'domain' => env('SESSION_DOMAIN', null),
     'secure' => env('SESSION_SECURE_COOKIE', false),
     'http_only' => true,
-    'same_site' => env('SESSION_SAME_SITE', 'none'),
+    'same_site' => env('SESSION_SAME_SITE', 'lax'),
 ];

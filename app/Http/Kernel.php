@@ -27,6 +27,13 @@ class Kernel extends HttpKernel
             \App\Http\Middleware\ForceJsonResponse::class,
             \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
         ],
+
+        'api.public' => [  // New middleware group for public API routes
+            \App\Http\Middleware\LogRequestStart::class,
+            'throttle:api',
+            \Illuminate\Routing\Middleware\SubstituteBindings::class,
+            \App\Http\Middleware\ForceJsonResponse::class,
+        ],
     ];
 
     protected $routeMiddleware = [
